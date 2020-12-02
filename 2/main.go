@@ -19,22 +19,22 @@ func main() {
 
 	scanner := bufio.NewScanner(f)
 
-	var count int
+	var p1Count int
+
+	var p2Count int
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		if isPasswordValid(line) {
-			count++
+			p1Count++
+		}
+		if isPasswordValidP2(line) {
+			p2Count++
 		}
 	}
 
-	fmt.Printf("Found %d valid passwords", count)
-}
-
-type requirements struct {
-	Letter string
-	Min    int
-	Max    int
+	fmt.Printf("Found %d valid passwords for part 1\n", p1Count)
+	fmt.Printf("Found %d valid passwords for part 2\n", p2Count)
 }
 
 func isPasswordValid(line string) bool {
@@ -47,23 +47,41 @@ func isPasswordValid(line string) bool {
 	min, _ := strconv.Atoi(counts[0])
 	max, _ := strconv.Atoi(counts[1])
 
-	req := requirements{
-		Letter: letter,
-		Min:    min,
-		Max:    max,
-	}
-
 	password := values[2]
 
 	count := 0
 
 	for i := range password {
-		if string(password[i]) == req.Letter {
+		if string(password[i]) == letter {
 			count++
 		}
 	}
 
-	if count >= req.Min && count <= req.Max {
+	if count >= min && count <= max {
+		return true
+	}
+
+	return false
+}
+
+func isPasswordValidP2(line string) bool {
+
+	values := strings.Split(line, " ")
+
+	letter := string(values[1][0])
+
+	counts := strings.Split(values[0], "-")
+	position1, _ := strconv.Atoi(counts[0])
+	position2, _ := strconv.Atoi(counts[1])
+
+	// Have to account for array index being one less
+	position1--
+	position2--
+
+	password := values[2]
+
+	if (string(password[position1]) == letter && string(password[position2]) != letter) ||
+		(string(password[position2]) == letter && string(password[position1]) != letter) {
 		return true
 	}
 
