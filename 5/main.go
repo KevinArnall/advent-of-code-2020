@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"sort"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 	scanner := bufio.NewScanner(f)
 
 	max := 0
+	seatIds := make([]int, 0)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -26,15 +28,27 @@ func main() {
 		col := binarySearch(line[7:], 8)
 		seatID := row*8 + col
 
-		fmt.Printf("%s ", line)
-		fmt.Printf("Row: %d, Column: %d Seat ID: %d\n", row, col, seatID)
+		seatIds = append(seatIds, seatID)
 
 		if seatID > max {
 			max = seatID
 		}
 	}
 
-	fmt.Printf("Highest seat ID: %d\n",max)
+	fmt.Printf("Highest seat ID: %d\n", max)
+
+	sort.Ints(seatIds)
+
+	for i, id := range seatIds {
+		if i == 0 {
+			continue
+		}
+
+		if seatIds[i-1] != id-1 {
+			fmt.Printf("Your seat id is: %d\n", id-1)
+			break
+		}
+	}
 }
 
 func binarySearch(str string, rows int) int {
