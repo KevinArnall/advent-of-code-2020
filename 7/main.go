@@ -4,12 +4,18 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"unicode"
 )
 
 type rule struct {
-	Contains []string
+	Contains []bag
+}
+
+type bag struct {
+	Color string
+	Count int64
 }
 
 func main() {
@@ -34,7 +40,14 @@ func main() {
 
 		for i, word := range words {
 			if unicode.IsDigit(rune(word[0])) {
-				rule.Contains = append(rule.Contains, words[i+1]+words[i+2])
+
+				count, _ := strconv.ParseInt(string(word[0]), 10, 32)
+
+				b := bag{
+					Color: words[i+1] + words[i+2],
+					Count: count,
+				}
+				rule.Contains = append(rule.Contains, b)
 			}
 		}
 
@@ -43,26 +56,39 @@ func main() {
 		rules[bagName] = rule
 
 	}
-	//fmt.Printf("%+v", rules)
 
 	bagsFound := make(map[string]bool)
 
-	find("shinygold", rules, bagsFound)
+	findParents("shinygold", rules, bagsFound)
+	fmt.Printf("Total bags that can contain shiny gold: %+v\n", len(bagsFound))
 
-	//fmt.Printf("%+v\n", bagsFound)
-	fmt.Printf("Total bags that can contain shiny gold: %+v", len(bagsFound))
+	childrenFound := findChildren("shinygold", rules, 1)
+	fmt.Printf("Total children contained in your shiny gold bag: %d", childrenFound-1)
 }
 
-func find(bag string, rules map[string]rule, bagsFound map[string]bool) {
+func findParents(colorLookingFor string, rules map[string]rule, bagsFound map[string]bool) {
 
 	for s, r := range rules {
-		for _, bagName := range r.Contains {
-			if bagName == bag {
-				//fmt.Printf("Child: %s Parent: %s\n", bag, s)
+		for _, bag := range r.Contains {
+			if bag.Color == colorLookingFor {
 				bagsFound[s] = true
-				find(s, rules, bagsFound)
+				findParents(s, rules, bagsFound)
 			}
 		}
 	}
-	//fmt.Printf("No more parents found for %s\n", bag)
+}
+
+func findChildren(colorLookingFor string, rules map[string]rule, count int64) int64 {
+	for s, r := range rules {
+		if colorLookingFor == s {
+			var children int64
+
+			for _, bag := range r.Contains {
+				children += findChildren(bag.Color, rules, count) * bag.Count
+			}
+
+			count += children
+		}
+	}
+	return count
 }
