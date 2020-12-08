@@ -10,16 +10,10 @@ import (
 )
 
 type rule struct {
-	Contains []bag
-}
-
-type bag struct {
-	Color string
-	Count int64
+	Contains map[string]int64
 }
 
 func main() {
-
 	f, err := os.Open("./7/input.txt")
 	if err != nil {
 		fmt.Print("Error opening file: ", err.Error())
@@ -32,7 +26,7 @@ func main() {
 	rules := make(map[string]rule)
 
 	for scanner.Scan() {
-		rule := rule{}
+		rule := rule{Contains: make(map[string]int64)}
 
 		line := scanner.Text()
 
@@ -43,18 +37,14 @@ func main() {
 
 				count, _ := strconv.ParseInt(string(word[0]), 10, 32)
 
-				b := bag{
-					Color: words[i+1] + words[i+2],
-					Count: count,
-				}
-				rule.Contains = append(rule.Contains, b)
+				color := words[i+1] + words[i+2]
+				rule.Contains[color] = count
 			}
 		}
 
 		bagName := words[0] + words[1]
 
 		rules[bagName] = rule
-
 	}
 
 	bagsFound := make(map[string]bool)
@@ -67,28 +57,21 @@ func main() {
 }
 
 func findParents(colorLookingFor string, rules map[string]rule, bagsFound map[string]bool) {
-
 	for s, r := range rules {
-		for _, bag := range r.Contains {
-			if bag.Color == colorLookingFor {
-				bagsFound[s] = true
-				findParents(s, rules, bagsFound)
-			}
+		if r.Contains[colorLookingFor] != 0 {
+			bagsFound[s] = true
+			findParents(s, rules, bagsFound)
 		}
 	}
 }
 
 func findChildren(colorLookingFor string, rules map[string]rule, count int64) int64 {
-	for s, r := range rules {
-		if colorLookingFor == s {
-			var children int64
+	var children int64
+	rule := rules[colorLookingFor]
 
-			for _, bag := range r.Contains {
-				children += findChildren(bag.Color, rules, count) * bag.Count
-			}
-
-			count += children
-		}
+	for bag, bagCount := range rule.Contains {
+		children += findChildren(bag, rules, count) * bagCount
 	}
-	return count
+
+	return count + children
 }
