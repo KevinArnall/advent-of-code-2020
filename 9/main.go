@@ -28,7 +28,11 @@ func main() {
 	}
 
 	ans := part1(numbers)
-	fmt.Printf("Answer for number 1: %d", ans)
+	fmt.Printf("Answer for part 1: %d\n", ans)
+
+	ans = part2(numbers, ans)
+	fmt.Printf("Answer for part 2: %d\n", ans)
+
 }
 
 func part1(numbers []int) int {
@@ -53,5 +57,34 @@ func part1(numbers []int) int {
 		start++
 		end++
 	}
+	return -1
+}
+
+func part2(numbers []int, ans int) int {
+	start := 0
+	end := 1
+
+	for end != len(numbers) {
+		total := 0
+		min := ans
+		max := 0
+		for _, number := range numbers[start:end] {
+			if number > max {
+				max = number
+			}
+			if number < min {
+				min = number
+			}
+			total += number
+		}
+		if total == ans {
+			return min + max
+		} else if total > ans {
+			start++
+		} else if total < ans {
+			end++
+		}
+	}
+
 	return -1
 }
